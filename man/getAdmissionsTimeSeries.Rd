@@ -4,13 +4,21 @@
 \alias{getAdmissionsTimeSeries}
 \title{Converts data frames to time series of admissions}
 \usage{
-getAdmissionsTimeSeries(data, ageBrackets = NULL, locations = NULL)
+getAdmissionsTimeSeries(
+  data,
+  ageBrackets = NULL,
+  ageCol = "startage",
+  locations = NULL,
+  admittedDateCol = "admidate"
+)
 }
 \arguments{
 \item{data}{dataframe of APC data}
 
 \item{ageBrackets}{list of vectors where first item is lower age and second is upper age of age bracket, age brackets will be treated assuming they are inclusive.
 If Null data won't be split by age}
+
+\item{ageCol}{Field in data in which age is stored, must be supplied with ageBrackets}
 
 \item{locations}{Field in data to treat as locations to be split by. If Null data won't be split by location}
 }
