@@ -21,7 +21,11 @@ timeSeriesPerCode <- vector('list', length(dataPerCode))
 names(timeSeriesPerCode) <- names(dataPerCode)
 for (code in names(dataPerCode)){
     df <- dataPerCode[[code]]    
+    if (nrow(df) != 0){ #are there any records with this ICD code
     timeSeriesPerCode[[code]] <- getAdmissionsTimeSeries(df, 
                                                     ageBrackets) #get time series of weekly admissions per ICD code
+    }else{
+        timeSeriesPerCode[[code]] <- NULL
+    }
 }
 
