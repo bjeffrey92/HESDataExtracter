@@ -13,7 +13,7 @@ Still to incorporate:<br/>
               
 ## Installation 
 ```R
-devtools::install_github(https://github.com/bjeffrey92/HESDataExtracter)
+devtools::install_github('https://github.com/bjeffrey92/HESDataExtracter')
 ```
 
 ## Usage
