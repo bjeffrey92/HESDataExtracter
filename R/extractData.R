@@ -21,7 +21,7 @@ extractRecords <- function(data, ICDCodes){
     return(outList)
 }
 
-
+#' auxillary function for getAdmissionsTimeSeries()
 splitByAge <- function(data, ageBrackets, ageCol){
 
     data <- data[!is.na(data[[ageCol]]), ] 
@@ -42,7 +42,7 @@ splitByAge <- function(data, ageBrackets, ageCol){
     return(outList)
 }
 
-
+#' auxillary function for getAdmissionsTimeSeries()
 splitByLocation <- function(data, locCol){
     
     data <- data[!is.na(data[[locCol]]), ] 
@@ -51,7 +51,7 @@ splitByLocation <- function(data, locCol){
                     length = length(unique(data[[locCol]])))
     names(outList) <- unique(data[[locCol]])
     for (loc in unique(data[[locCol]])){
-        outList[[loc]] <- data[data[locCol]] == loc,]
+        outList[[loc]] <- data[data[locCol] == loc,]
     }
     return(outList)
 }
@@ -63,22 +63,24 @@ splitByLocation <- function(data, locCol){
 #' @param data dataframe of APC data
 #' @param ageBrackets list of vectors where first item is lower age and second is upper age of age bracket, age brackets will be treated assuming they are inclusive.
 #'                    If Null data won't be split by age
+#' @param ageCol Field in data in which age is stored, must be supplied with ageBrackets
 #' @param locations Field in data to treat as locations to be split by. If Null data won't be split by location
 #' @export
 getAdmissionsTimeSeries <- function(data, ageBrackets = NULL, 
-                                    locations = NULL){
+                                    ageCol = 'startage', locations = NULL,
+                                    admittedDateCol = 'admidate'){
     
     if (is.null(locations) & is.null(ageBrackets)){
         allDfs <- list(data)
     }
     else if (is.null(locations) & !is.null(ageBrackets)){
-        allDfs <- splitByAge(data, ageBrackets)
+        allDfs <- splitByAge(data, ageBrackets, ageCol)
     }
     else if (!is.null(locations) & is.null(ageBrackets)){
         allDfs <- splitByLocation(data, locations)
     }
     else {
-        ageDfs <- splitByAge(data, ageBrackets)
+        ageDfs <- splitByAge(data, ageBrackets, ageCol)
         allDfs <- list()
         for (ageName in names(ageDfs)){
             locDfs <- splitByLocation(ageDfs[[ageName]], locations)
@@ -88,8 +90,28 @@ getAdmissionsTimeSeries <- function(data, ageBrackets = NULL,
             }
         }
     }
-    return(allDfs)
-    # for (df in allDfs){
 
-    # }
+    referenceDate <- "2000-01-01" #will record in weeks starting at this point
+    print(paste0('Times are recorded in whole weeks since ',referenceDate))
+    outList <- vector('list', length = length(allDfs))
+    names(outList) <- names(allDfs)
+    for (name in names(allDfs)){
+        df <- allDfs[[name]]
+        df$weeksSinceRef <- as.integer(difftime(
+                                        as.POSIXct(df[[admittedDateCol]]), 
+                                        as.POSIXct(referenceDate), 
+                                        units = 'weeks')) #calculates number of whole weeks since reference date
+        countsTable <- table(df$weeksSinceRef)
+        counts <- c()
+        for (i in names(countsTable)){
+            counts <- c(countsTable[[i]], counts)
+        }
+        startWeek <- as.integer(difftime(
+                                        min(as.POSIXct(df[[admittedDateCol]])), 
+                                        as.POSIXct(referenceDate), 
+                                        units = 'weeks')) #calculates number of whole weeks since reference date
+        countsTS <- ts(counts, startWeek)
+        outList[[name]] <- countsTS
+    }
+    return(outList)
 }
