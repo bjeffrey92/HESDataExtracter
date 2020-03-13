@@ -15,3 +15,6 @@ Still to incorporate:<br/>
 ```R
 devtools::install_github(https://github.com/bjeffrey92/HESDataExtracter)
 ```
+
+## Usage
+See `demo/extractHESData.R` for example script
