@@ -8,14 +8,20 @@ library(haven)
 #' @param cols vector of column names to keep in addition to diag_x columns, if NULL returns all columns
 #' @export
 loadFromDta <- function(dtaFile, cols = NULL){
+    print('Reading in APC data, this may take a while')
+    
     data <- haven::read_dta(dtaFile)
-    if (!is.null(cols)){
-        outData <- data[cols]
-        outData <- cbind(outData, 
-                    data[,grepl('diag_', names(data))]) #adds diagnosis columns
-
-    }
-    return(data)
+    
+    print('Filtering columns')
+    cols <- c('startage','encrypted_hesid','admidate','disdate',
+            'epistat','procode','procode3','soal') #relevant columns in APC data to extract
+    df <- data[cols]
+    diagCols <- data[,grepl('diag_', names(data))] #gets diagnosis columns
+    df$allDiagnoses <- apply(diagCols[ ,names(diagCols)],
+                            1,paste,collapse = "-") #pastes all diagnoses to one column so it can be efficiently searched
+    df <- df[,names(df) %in% c(cols, "allDiagnoses")] #drop unnesecary columns
+        
+    return(df)
 }
 
 
@@ -27,11 +33,19 @@ loadFromDta <- function(dtaFile, cols = NULL){
 #' @param sep seperator between field (str)
 #' @export
 loadFromCsv <- function(csvFile, cols = NULL, sep = ','){
-    data <- read.csv(csvFile, sep = sep)
-    if (!is.null(cols)){
-        data <- data[cols]
-        outData <- cbind(outData, 
-                    data[,grepl('diag_', names(data))]) #adds diagnosis columns
-    }
-    return(data)
+    print('Reading in APC data, this may take a while')
+    
+    data <- read.csv(csvFile, sep = sep, 
+                    stringsAsFactors = FALSE)
+    
+    print('Filtering columns')
+    cols <- c('startage','encrypted_hesid','admidate','disdate',
+            'epistat','procode','procode3','soal') #relevant columns in APC data to extract
+    df <- data[cols]
+    diagCols <- data[,grepl('diag_', names(data))] #gets diagnosis columns
+    df$allDiagnoses <- apply(diagCols[ ,names(diagCols)],
+                            1,paste,collapse = "-") #pastes all diagnoses to one column so it can be efficiently searched
+    df <- df[,names(df) %in% c(cols, "allDiagnoses")] #drop unnesecary columns
+    
+    return(df)
 }
